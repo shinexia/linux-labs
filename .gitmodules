@@ -7,3 +7,6 @@
 [submodule "grub2"]
 	path = grub2
 	url = https://github.com/rhboot/grub2.git
+[submodule "edk2"]
+	path = edk2
+	url = https://github.com/tianocore/edk2.git

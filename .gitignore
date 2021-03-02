@@ -54,3 +54,4 @@ dkms.conf
 # custom
 .vscode
 /_install_*
+/_grub2_*
