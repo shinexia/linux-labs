@@ -5,6 +5,8 @@ cd $(dirname $) || exit $?
 LROOT=$(pwd)
 JOBCOUNT=${JOBCOUNT=$(nproc)}
 
+export ARCH=x86_64
+
 LINUX_DIR=${LROOT}/linux
 
 build_kernel() {
