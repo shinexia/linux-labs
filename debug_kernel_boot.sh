@@ -2,8 +2,10 @@
 
 cd $(dirname $) || exit $?
 
-LINUX_DIR=linux
+LROOT=$(pwd)
 JOBCOUNT=${JOBCOUNT=$(nproc)}
+
+LINUX_DIR=${LROOT}/linux
 
 build_kernel() {
     cd ${LINUX_DIR}

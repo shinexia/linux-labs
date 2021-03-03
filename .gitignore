@@ -55,3 +55,4 @@ dkms.conf
 .vscode
 /_install_*
 /_grub2_*
+/_edk2_*

@@ -10,3 +10,6 @@
 [submodule "edk2"]
 	path = edk2
 	url = https://github.com/tianocore/edk2.git
+[submodule "xv6"]
+	path = xv6
+	url = https://github.com/mit-pdos/xv6-public.git
