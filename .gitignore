@@ -57,3 +57,5 @@ dkms.conf
 /_edk2_*
 .vscode/*
 !/.vscode/c_cpp_properties.json
+/logs
+

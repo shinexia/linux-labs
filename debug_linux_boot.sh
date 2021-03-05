@@ -15,7 +15,7 @@ build_kernel() {
     make oldconfig      # 根据提示安装`flex bison libelf-dev`等依赖包
     make localmodconfig # 仅安装已有的module
     make menuconfig
-    make -j${JOBCOUNT}
+    make -j${JOBCOUNT} V=1
     # got arch/x86_64/boot/bzImage
 }
 

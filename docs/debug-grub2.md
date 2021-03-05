@@ -135,7 +135,44 @@ Breakpoint 3, grub_main () at kern/main.c:266
 => 0x51a7cca <grub_main>:       endbr64
 ```
 
-5. continue do what you want
+boot path
+
+```
+_start: grub2/grub-core/kern/i386/efi/startup.S
+grub_main: grub2/grub-core/kern/main.c
+```
+
+startup.S
+
+``` asm
+#include <config.h>
+#include <grub/symbol.h>
+
+        .file   "startup.S"
+        .text
+        .globl  start, _start
+start:
+_start:
+	/*
+	 *  EFI_SYSTEM_TABLE * and EFI_HANDLE are passed on the stack.
+	 */
+	movl	4(%esp), %eax
+	movl	%eax, EXT_C(grub_efi_image_handle)
+	movl	8(%esp), %eax
+	movl	%eax, EXT_C(grub_efi_system_table)
+	call	EXT_C(grub_main)
+	ret
+```
+
+linux boot commands(linux, initrd, boot etc.)
+
+``` text
+grub2/grub-core/loader/i386/linux.c
+```
+
+a minimal linux bootloader: [../mlb](../mlb)
+
+5. do what you want
 
 
 ## links

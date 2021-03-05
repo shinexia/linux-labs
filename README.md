@@ -31,3 +31,9 @@ edk2
 sudo apt install nasm iasl
 ```
 
+## Docs
+
+[bzImage的创建过程](docs/build-bzimage.md)
+[调试bzImage前512B的启动过程](docs/debug-linux-boot.md)
+[调试grub2的启动过程](docs/debug-grub2.md)
+
