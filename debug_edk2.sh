@@ -1,14 +1,15 @@
 #!/bin/bash
 
-cd $(dirname $) || exit $?
+cd $(dirname $0) || exit $?
 
 LROOT=$PWD
 JOBCOUNT=${JOBCOUNT=$(nproc)}
 
 export ARCH=x86_64
-export INSTALL_PATH=${LROOT}/_install_edk2_$ARCH
+export INSTALL_PATH=${LROOT}/_install_boot_$ARCH
 
 EDK2_DIR=${LROOT}/edk2
+GRUB2_DIR=${LROOT}/grub2
 
 build_img() {
     mkdir -p ${INSTALL_PATH}
@@ -50,8 +51,7 @@ run_ovmf() {
 
 run_gdb() {
     cd ${GRUB2_DIR}/grub-core
-    gdb --tui -x gdb_grub \
-        -ex "display/i \$pc"
+    gdb --tui -ex "target remote localhost:1234"
 }
 
 case $1 in
@@ -72,7 +72,14 @@ build_ovmf)
     build_ovmf
     ;;
 
-run_ovmf)
+build)
+    build_img
+    build_base_tools
+    build_helloworld
+    build_ovmf
+    ;;
+
+run)
     run_ovmf
     ;;
 
@@ -81,7 +88,7 @@ gdb)
     ;;
 
 *)
-    echo "usage: $0 build_grub2|build_img|run|gdb"
+    echo "usage: $0 build|run|gdb"
     exit 1
     ;;
 

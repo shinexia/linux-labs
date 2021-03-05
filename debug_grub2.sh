@@ -1,17 +1,17 @@
 #!/bin/bash
 
-cd $(dirname $) || exit $?
+cd $(dirname $0) || exit $?
 
 LROOT=$PWD
 JOBCOUNT=${JOBCOUNT=$(nproc)}
 
 export ARCH=x86_64
 export INSTALL_PATH=${LROOT}/_install_grub2_${ARCH}
-export EDK2_INSTALL_PATH=${LROOT}/_install_edk2_${ARCH}
+export BOOT_INSTALL_PATH=${LROOT}/_install_boot_${ARCH}
 
 LINUX_DIR=${LROOT}/linux
 GRUB2_DIR=${LROOT}/grub2
-IMG_PATH=${INSTALL_PATH}/hda.img
+HDA_IMG_FILE=${INSTALL_PATH}/grub2-hda.img
 
 build_grub2() {
     rm -vfr ${INSTALL_PATH}
@@ -25,22 +25,24 @@ build_grub2() {
 }
 
 build_img() {
-    if [[ -f "${IMG_PATH}" ]]; then
-        rm -v ${IMG_PATH}
+    if [[ -f "${HDA_IMG_FILE}" ]]; then
+        rm -v ${HDA_IMG_FILE}
     fi
-    qemu-img create -f raw ${IMG_PATH} 512M
-    mkfs.fat ${IMG_PATH}
-    sudo mount -o uid=$UID ${IMG_PATH} /mnt
+    qemu-img create -f raw ${HDA_IMG_FILE} 512M
+    mkfs.fat ${HDA_IMG_FILE}
+    sudo mount -o uid=$UID ${HDA_IMG_FILE} /mnt
     mkdir -p /mnt/efi/boot
     ${INSTALL_PATH}/bin/grub-mkstandalone -O x86_64-efi -o /mnt/efi/boot/bootx64.efi
-    ${INSTALL_PATH}/bin/grub-mkstandalone -O x86_64-efi -o ${EDK2_INSTALL_PATH}/grubx64.efi
     sudo umount /mnt
+
+    mkdir -p ${BOOT_INSTALL_PATH} &&
+        ${INSTALL_PATH}/bin/grub-mkstandalone -O x86_64-efi -o ${BOOT_INSTALL_PATH}/grubx64.efi
 }
 
 run_qemu() {
     qemu-system-${ARCH} \
         -bios /usr/share/ovmf/OVMF.fd \
-        -hda ${IMG_PATH} \
+        -hda ${HDA_IMG_FILE} \
         -nographic -s -S
 }
 
@@ -60,6 +62,11 @@ build_img)
     build_img
     ;;
 
+build)
+    build_grub2
+    build_img
+    ;;
+
 run)
     run_qemu
     ;;
@@ -69,7 +76,7 @@ gdb)
     ;;
 
 *)
-    echo "usage: $0 build_grub2|build_img|run|gdb"
+    echo "usage: $0 build|run|gdb"
     exit 1
     ;;
 

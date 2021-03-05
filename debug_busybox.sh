@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd $(dirname $) || exit $?
+cd $(dirname $0) || exit $?
 
 LROOT=$PWD
 JOBCOUNT=${JOBCOUNT=$(nproc)}

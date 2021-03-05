@@ -52,7 +52,8 @@ Mkfile.old
 dkms.conf
 
 # custom
-.vscode
 /_install_*
 /_grub2_*
 /_edk2_*
+.vscode/*
+!/.vscode/c_cpp_properties.json

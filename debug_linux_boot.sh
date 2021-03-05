@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd $(dirname $) || exit $?
+cd $(dirname $0) || exit $?
 
 LROOT=$(pwd)
 JOBCOUNT=${JOBCOUNT=$(nproc)}
@@ -17,6 +17,13 @@ build_kernel() {
     make menuconfig
     make -j${JOBCOUNT}
     # got arch/x86_64/boot/bzImage
+}
+
+# clean up *.o *.o.cmd files to get better reading
+clean_kernel() {
+    cd ${LINUX_DIR}
+    find . -name \*.o -exec rm -v {} \;
+    find . -regex '.*\.[^/]*\.cmd' -exec rm -v {} \;
 }
 
 run_qemu() {
@@ -39,6 +46,10 @@ build)
     build_kernel
     ;;
 
+clean)
+    clean_kernel
+    ;;
+
 run)
     run_qemu
     ;;
@@ -48,7 +59,7 @@ gdb)
     ;;
 
 *)
-    echo "usage: $0 build|run|gdb"
+    echo "usage: $0 build|clean|run|gdb"
     exit 1
     ;;
 
