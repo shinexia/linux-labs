@@ -67,7 +67,7 @@ nm arch/x86/boot/compressed/vmlinux | \
 
 zoffset.h content
 
-```
+``` c
 #define ZO__ehead 0x00000000000003b1
 #define ZO__end 0x0000000000ada000
 #define ZO__text 0x0000000000a9bc30
@@ -130,7 +130,7 @@ ld -m elf_x86_64 -z noreloc-overflow -pie --no-dynamic-linker   \
     -o arch/x86/boot/compressed/vmlinux
 ```
 
-`readelf -S $obj | grep -qF .rel.local `
+ `readelf -S $obj | grep -qF .rel.local `
 
 ``` bash
 $ readelf -S arch/x86/boot/compressed/head_64.o 
@@ -170,7 +170,7 @@ Key to Flags:
   l (large), p (processor specific)
 ```
 
-## arch/x86/boot/compressed/piggy.S
+## arch/x86/boot/compressed/piggy. S
 
 ``` bash
 arch/x86/boot/compressed/mkpiggy arch/x86/boot/compressed/vmlinux.bin.lz4 > arch/x86/boot/compressed/piggy.S

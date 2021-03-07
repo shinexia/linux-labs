@@ -10,14 +10,14 @@
 
 got `_install_boot_x86_64/OVMF.fd`
 
-1. build grub2
+2. build grub2
 
-``` bash 
+``` bash
 ./debug_grub2.sh build
+
 ```
 
 got `_install_boot_x86_64/grubx64.efi`
-
 
 3. run `grubx64.efi` in UEFI BIOS with debug log
 
@@ -41,7 +41,9 @@ InstallProtocolInterface: 5B1B31A1-9562-11D2-8E3F-00A0C969723B 6C2D140
 Loading driver at 0x0000519F000 EntryPoint=0x000051A0000 
 InstallProtocolInterface: BC62157E-3E33-4FEC-9920-2D3B36D750DF 6C36D98
 ProtectUefiImageCommon - 0x6C2D140
-  - 0x000000000519F000 - 0x0000000000979000
+
+  + 0x000000000519F000 - 0x0000000000979000
+
 InstallProtocolInterface: 752F3136-4E16-4FDC-A22A-E5F46812F4CA 7EA36C8
 ```
 
@@ -137,12 +139,13 @@ Breakpoint 3, grub_main () at kern/main.c:266
 
 boot path
 
-```
+``` 
+
 _start: grub2/grub-core/kern/i386/efi/startup.S
 grub_main: grub2/grub-core/kern/main.c
 ```
 
-startup.S
+startup. S
 
 ``` asm
 #include <config.h>
@@ -174,9 +177,7 @@ a minimal linux bootloader: [../mlb](../mlb)
 
 5. do what you want
 
-
 ## links
 
 1. <https://stackoverflow.com/questions/43872078/debug-grub2-efi-image-running-on-qemu>
 2. <https://github.com/tianocore/tianocore.github.io/wiki/How-to-debug-OVMF-with-QEMU-using-GDB>
-

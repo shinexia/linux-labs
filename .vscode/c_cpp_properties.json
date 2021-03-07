@@ -12,7 +12,8 @@
             ],
             "defines": [
                 "__GNUC__",
-                "__KERNEL__"
+                "__KERNEL__",
+                "CONFIG_X86_32"
             ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",

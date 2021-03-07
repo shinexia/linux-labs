@@ -2,20 +2,21 @@
 
 ## 编译linux内核
 
-```bash
+``` bash
 ./debug_linux_boot.sh build
 ```
-编译成功后会得到镜像文件`arch/x86/boot/bzImage`
+
+编译成功后会得到镜像文件 `arch/x86/boot/bzImage`
 
 ## 运行镜像
 
-```bash
+``` bash
 qemu-system-x86_64 arch/x86/boot/bzImage -nographic
 ```
 
 显示如下
 
-```text
+``` text
 Booting from Hard Disk...
 Use a boot loader.
 
@@ -25,9 +26,9 @@ Remove disk and press any key to reboot...
 
 相关源码
 
-`arch/x86/boot/header.S`
+ `arch/x86/boot/header.S`
 
-```asm
+``` asm
 	.code16
 	.section ".bstext", "ax"
 
@@ -88,21 +89,21 @@ bugger_off_msg:
 	.byte	0
 ```
 
-linux内核启动机制一直在变化，早期的如《Linux内核完全剖析-基于0.12内核》中的启动过程是有用到`boot sector`的，新版中则必须通过`bootloader`（`GRUB`、`UBOOT`等）来启动。所以上面的代码的主要作用就是打印提示信息，等待用户任意键，然后重启。
+linux内核启动机制一直在变化，早期的如《Linux内核完全剖析-基于0.12内核》中的启动过程是有用到 `boot sector` 的，新版中则必须通过 `bootloader` （ `GRUB` 、 `UBOOT` 等）来启动。所以上面的代码的主要作用就是打印提示信息，等待用户任意键，然后重启。
 
 退出qemu: `Ctrl A + x`
 
-## 调试`boot sector`
+## 调试 `boot sector`
 
 启动内核
 
-```bash
+``` bash
 qemu-system-x86_64 arch/x86_64/boot/bzImage -nographic -s -S
 ```
 
 另起一个shell
 
-```bash
+``` bash
 $ gdb
 (gdb) target remote :1234
 Remote debugging using :1234
@@ -137,9 +138,9 @@ gs             0x0      0
 (gdb)
 ```
 
-CPU通电后，`$cs=0xf000 $rip=0xfff0`，指向BIOS的代码，此时CPU处于16bit实模式，需要切换arch才能反汇编，但gdb不支持实时切换，会报以下错误：
+CPU通电后， `$cs=0xf000 $rip=0xfff0` ，指向BIOS的代码，此时CPU处于16bit实模式，需要切换arch才能反汇编，但gdb不支持实时切换，会报以下错误：
 
-```bash
+``` bash
 (gdb) x/5i $cs*16+$pc
    0xffff0:     (bad)
    0xffff1:     pop    %rbx
@@ -156,13 +157,13 @@ Remote 'g' packet reply is too long (expected 308 bytes, got 536 bytes): 0000000
 (gdb)
 ```
 
-最简单的处理方式是换`qemu-system-i386`模拟，kernel启动前期是不需要支持64位指令的，需要调试64位代码的时候，再换做`qemu-system-x86_64`并跳过前期代码就行。
+最简单的处理方式是换 `qemu-system-i386` 模拟，kernel启动前期是不需要支持64位指令的，需要调试64位代码的时候，再换做 `qemu-system-x86_64` 并跳过前期代码就行。
 
-```bash
+``` bash
 qemu-system-i386 arch/x86_64/boot/bzImage -nographic -s -S
 ```
 
-```bash
+``` bash
 (gdb) target remote :1234
 Remote debugging using :1234
 warning: No executable has been specified and target does not support
@@ -187,7 +188,7 @@ The target architecture is assumed to be i8086
 
 CPU刚启动时，先运行预加载到内存中的BIOS代码，BIOS会将bzImage前512B（即第一个扇区）加载到0x7c00处，并执行
 
-```bash
+``` bash
 (gdb) break *0x7c00
 Breakpoint 1 at 0x7c00
 (gdb) c
@@ -207,9 +208,9 @@ Breakpoint 1, 0x00007c00 in ?? ()
 (gdb) 
 ```
 
-`4d 5a`就和`arch/x86/boot/header.S`中的代码对应起来了
+`4d 5a` 就和 `arch/x86/boot/header.S` 中的代码对应起来了
 
-```nasm
+``` nasm
 	.code16
 	.section ".bstext", "ax"
 
@@ -227,18 +228,16 @@ bootsect_start:
 
 但这里的反汇编结果仍然有问题
 
-```text
+``` text
    0x7c02:      ljmp   $0xc88c,$0x7c00007
 ```
 
-用`objdump`来看
+用 `objdump` 来看
 
-```bash
+``` bash
 $ objdump --adjust-vma=0x7c00 -m i8086 -b binary -D arch/x86/boot/bzImage| more                                                                                                                                          
 
-
 arch/x86/boot/bzImage:     file format binary
-
 
 Disassembly of section .data:
 
@@ -270,12 +269,11 @@ Disassembly of section .data:
     7c3f:       00 55 73                add    %dl,0x73(%di)
 ```
 
-这里`    7c02:       ea 07 00 c0 07          ljmp   $0x7c0,$0x7`才是合理的
-
+这里 `    7c02:       ea 07 00 c0 07          ljmp   $0x7c0,$0x7` 才是合理的
 
 解决方法(<https://stackoverflow.com/questions/32955887/how-to-disassemble-16-bit-x86-boot-sector-code-in-gdb-with-x-i-pc-it-gets-tr/32960272>)：
 
-```bash
+``` bash
 $ echo '<?xml version="1.0"?><!DOCTYPE target SYSTEM "gdb-target.dtd"><target><architecture>i8086</architecture><xi:include href="i386-32bit.xml"/></target>' > target.xml
 $ wget https://raw.githubusercontent.com/qemu/qemu/master/gdb-xml/i386-32bit.xml
 $ gdb -ex "target remote :1234" -ex "set tdesc filename target.xml" -ex "set arch i8086" -ex "display/i \$cs*16+\$pc"
@@ -307,15 +305,15 @@ Breakpoint 1, 0x00007c00 in ?? ()
 
 ## UEFI的启动过程
 
-目前常见的启动模式是`UEFI+GRUB`来引导linux内核，其基本启动流程：
+目前常见的启动模式是 `UEFI+GRUB` 来引导linux内核，其基本启动流程：
 
-CPU通电后，`$cs=0xf000 $rip=0xfff0`，并处于`16bit`实模式，内存的该区域是预先加载的`BIOS`代码，之后执行的是`BIOS`程序。
+CPU通电后， `$cs=0xf000 $rip=0xfff0` ，并处于 `16bit` 实模式，内存的该区域是预先加载的 `BIOS` 代码，之后执行的是 `BIOS` 程序。
 
-`BIOS`之后有两种启动模式：`MBR`和`UEFI`
+`BIOS` 之后有两种启动模式： `MBR` 和 `UEFI`
 
-`MBR`: `BIOS`会将启动硬盘的前`512B`加载到内存的`0x7c00`处，后跳转执行对应的代码。多个硬盘的情况下，用户通常可以在`BIOS`的设置界面设置启动顺序，`UEFI`模式启动的情况一样。用户通过向磁盘的`512B`写入自定义代码来控制系统的后续启动过程。
+`MBR` : `BIOS` 会将启动硬盘的前 `512B` 加载到内存的 `0x7c00` 处，后跳转执行对应的代码。多个硬盘的情况下，用户通常可以在 `BIOS` 的设置界面设置启动顺序， `UEFI` 模式启动的情况一样。用户通过向磁盘的 `512B` 写入自定义代码来控制系统的后续启动过程。
 
-`UEFI`：`BIOS`会找到硬盘的`ESP`分区，其文件结构如下：
+`UEFI` ： `BIOS` 会找到硬盘的 `ESP` 分区，其文件结构如下：
 
 ``` text
 /boot/efi
@@ -332,18 +330,17 @@ CPU通电后，`$cs=0xf000 $rip=0xfff0`，并处于`16bit`实模式，内存的�
         └── shimx64.efi
 ```
 
-默认执行其中的/EFI/BOOT/BOOTX64.EFI，有些`BIOS`可以设置具体的启动程序。用户通过向ESP分区写入efi程序来控制系统的后续启动过程。
+默认执行其中的/EFI/BOOT/BOOTX64. EFI，有些 `BIOS` 可以设置具体的启动程序。用户通过向ESP分区写入efi程序来控制系统的后续启动过程。
 
-ESP创建方式：用fdisk像普通分区一样创建一个512M的分区，一般是第一个分区，并将type设置为`EFI System`，最后通过`mkfs.fat -F32 /dev/<THAT_PARTITION>`格式化fat格式。一般情况下不需要我们手动格式化，系统安装程序会自动处理。
+ESP创建方式：用fdisk像普通分区一样创建一个512M的分区，一般是第一个分区，并将type设置为 `EFI System` ，最后通过 `mkfs.fat -F32 /dev/<THAT_PARTITION>` 格式化fat格式。一般情况下不需要我们手动格式化，系统安装程序会自动处理。
 
 efi程序由开发套件来创建，相关资料可以参考<https://software.intel.com/en-us/articles/unified-extensible-firmware-interface>。
 
-不管是`MBR`还是`UEFI`，最后都会启动`grub`的主程序，由`grub`来引导`linux`内核的启动。
+不管是 `MBR` 还是 `UEFI` ，最后都会启动 `grub` 的主程序，由 `grub` 来引导 `linux` 内核的启动。
 
 ![](../data/image/uefi-boot.png)
 
 <https://www.daimajiaoliu.com/daima/485e0ab58100400>
-
 
 ## 参考链接
 
@@ -353,3 +350,4 @@ efi程序由开发套件来创建，相关资料可以参考<https://software.in
 4. <https://stackoverflow.com/questions/48620622/how-to-solve-qemu-gdb-debug-error-remote-g-packet-reply-is-too-long?rq=1>
 5. <https://stackoverflow.com/questions/32955887/how-to-disassemble-16-bit-x86-boot-sector-code-in-gdb-with-x-i-pc-it-gets-tr/32960272>
 6. <https://software.intel.com/en-us/articles/unified-extensible-firmware-interface>
+7. <https://software.intel.com/content/www/us/en/develop/articles/intel-sdm.html>
