@@ -19,3 +19,6 @@
 [submodule "mlb"]
 	path = mlb
 	url = https://github.com/wikkyk/mlb.git
+[submodule "freebsd"]
+	path = freebsd
+	url = https://github.com/freebsd/freebsd-src.git
