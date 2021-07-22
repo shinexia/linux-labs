@@ -6,6 +6,7 @@ LROOT=$(pwd)
 JOBCOUNT=${JOBCOUNT=$(nproc)}
 
 export ARCH=x86_64
+export INSTALL_PATH=${LROOT}/_install_boot_${ARCH}
 
 LINUX_DIR=${LROOT}/linux
 
@@ -17,6 +18,11 @@ build_kernel() {
     make menuconfig
     make -j${JOBCOUNT} V=1
     # got arch/x86_64/boot/bzImage
+}
+
+install_headers() {
+    cd ${LINUX_DIR}
+    make headers_install ARCH=${ARCH} INSTALL_HDR_PATH=${INSTALL_PATH}
 }
 
 # clean up *.o *.o.cmd files to get better reading
@@ -46,6 +52,10 @@ build)
     build_kernel
     ;;
 
+install)
+    install_headers
+    ;;
+
 clean)
     clean_kernel
     ;;
@@ -59,7 +69,7 @@ gdb)
     ;;
 
 *)
-    echo "usage: $0 build|clean|run|gdb"
+    echo "usage: $0 build|install|clean|run|gdb"
     exit 1
     ;;
 
